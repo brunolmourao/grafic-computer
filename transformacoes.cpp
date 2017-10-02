@@ -215,6 +215,28 @@ double** getIdentidade(int n){
     }
     return identidade;
 }
+double* criarNormal(double *v1, double *v2){
+    double *v;
+    v = (double*)calloc((4),sizeof(double*));
+    v[0] = (v1[1]*v[2])-(v1[2]*v2[1]);
+    v[1] = (v1[2]*v[0])-(v1[0]*v2[2]);
+    v[2] = (v1[0]*v[1])-(v1[1]*v2[0]);
+    v[3] = 0;
+    return v;
+}
+double** multVetorVetor(int n,double *v1,double *v2){
+    double **resultado;
+    resultado = (double**)calloc((n),sizeof(double));
+    for(int i=0;i<n;i++){
+        resultado[i] = (double*)calloc((n),sizeof(double));
+    }
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            resultado[i][j] = v1[i]*v2[j];
+        }
+    }
+    return resultado;
+}
 double** matrizEscala(int n,double *v){
     double **matrizEscala;
     matrizEscala = getIdentidade(n);
@@ -297,17 +319,74 @@ double** matrizCisalhamento(int n,double angle,int eixo){ //xy = 0,xz = 1, zx = 
     }
     return matrizCisalhamento;
     
+
+}
+double** espelhoArbitrarioOrigem(int n, double *normal){
+    double **matrizEspelho;
+    double **normalNT;
+    double *normaN = normalizarVetor(normal,n);
+    normalNT = multVetorVetor(n,normaN,normaN);
+    normalNT = multMatrizEscalar(normalNT,2,n,n);
+    matrizEspelho = subMatriz(matrizEspelho,normalNT,n);
+    return matrizEspelho;
+}
+double* criarQuaternio(double angle,double *u){
+    double angleRad = ((angle/2) * (M_PI) / 180.0);
+    double *q;
+    q = (double*)calloc((4),sizeof(double*));
+    for(int i=0;i<3;i++){
+        q[i] = sin(angleRad) * u[i];
+    }
+    q[3] = cos(angleRad);
+    
+    return q;
+}
+double* criarQuaternioConjugado(double *q){
+    double *qj;
+    qj = (double*)calloc((4),sizeof(double*));
+    for(int i=0;i<3;i++){
+        qj[i] = -q[i];
+    }
+    qj[3] = q[3];
+    return qj;
+}
+double** matrizLQuaternio(double *q){
+    double **matrizL;
+    matrizL = (double**)calloc((4),sizeof(double));
+    for(int i=0;i<4;i++){
+        matrizL[i] = (double*)calloc((4),sizeof(double));
+    }
+    matrizL[0][0] = q[3]; matrizL[0][1] = -q[2]; matrizL[0][2] = q[1]; matrizL[0][3] = q[0];
+    matrizL[1][0] = q[2]; matrizL[1][1] = q[3]; matrizL[1][2] = -q[0]; matrizL[1][3] = q[1];
+    matrizL[2][0] = -q[1]; matrizL[2][1] = q[0]; matrizL[2][2] = q[3]; matrizL[2][3] = q[2];
+    matrizL[3][0] = -q[0]; matrizL[3][1] = -q[1]; matrizL[3][2] = -q[2]; matrizL[3][3] = q[3];
+    return matrizL;
+}
+double** matrizRQuaternio(double *q){
+    double *qj = criarQuaternioConjugado(q);
+    double **matrizR;
+    matrizR = (double**)calloc((4),sizeof(double));
+    for(int i=0;i<4;i++){
+        matrizR[i] = (double*)calloc((4),sizeof(double));
+    }
+    matrizR[0][0] = qj[3]; matrizR[0][1] = qj[2]; matrizR[0][2] = -qj[1]; matrizR[0][3] = qj[0];
+    matrizR[1][0] = -qj[2]; matrizR[1][1] = qj[3]; matrizR[1][2] = qj[0]; matrizR[1][3] = qj[1];
+    matrizR[2][0] = qj[1]; matrizR[2][1] = -qj[0]; matrizR[2][2] = qj[3]; matrizR[2][3] = qj[2];
+    matrizR[3][0] = -qj[0]; matrizR[3][1] = -qj[1]; matrizR[3][2] = -qj[2]; matrizR[3][3] = qj[3];
+
+    return matrizR;
 }
 int main(int argc, char *argv[]){
     double **T,**E;
-    double *v;
+    double *v,*v1,*v2;
     int n = 4;
-    v = (double*)calloc((n),sizeof(double*));
-    v[0] = 3;
-    v[1] = 4;
-    v[2] = 5;
+    v1 = (double*)calloc((n),sizeof(double*));
+    v2 = (double*)calloc((n),sizeof(double*));
+    v1[0] = 6; v1[1] = 0; v1[2] = -4;
+    v2[0] = 0; v2[1] = 10; v2[2] = -4;
         T = matrizTranslacao(n,v);
         E = matrizCisalhamento(n,60,2);
+        v = criarNormal(v1,v2);
     for(int i=0;i<n;i++){
         cout<<"|";
         for(int j=0;j<n;j++){
@@ -315,5 +394,8 @@ int main(int argc, char *argv[]){
         }
         cout<<"|"<<endl;
     }
+    cout<< v[0] << endl;
+    cout<< v[1] <<endl;
+    cout << v[2]<<endl;
     return 0;
 }
