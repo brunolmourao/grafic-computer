@@ -218,9 +218,9 @@ double** getIdentidade(int n){
 double* criarNormal(double *v1, double *v2){
     double *v;
     v = (double*)calloc((4),sizeof(double*));
-    v[0] = (v1[1]*v[2])-(v1[2]*v2[1]);
-    v[1] = (v1[2]*v[0])-(v1[0]*v2[2]);
-    v[2] = (v1[0]*v[1])-(v1[1]*v2[0]);
+    v[0] = (v1[1]*v2[2])-(v1[2]*v2[1]);
+    v[1] = (v1[2]*v2[0])-(v1[0]*v2[2]);
+    v[2] = (v1[0]*v2[1])-(v1[1]*v2[0]);
     v[3] = 0;
     return v;
 }
